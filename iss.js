@@ -36,24 +36,48 @@ const fetchCoordsByIP = function(ip, callback) {
       return;
     }
 
-    console.log('Response body: ', body);
-
-    if (!body.succes) {
+    if (response.statusCode !== 200) {
       const message = `Success status was ${body.success}. Server message says: ${body.message} when fetching for IP ${body.ip}`;
       callback(Error(message), null);
       return;
     }
 
-    const long = body.longitude;
-    const lat = body.latitude;
-    callback(null, {lat, long});
+    const longitude = body.longitude;
+    const latitude = body.latitude;
+    callback(null, {latitude, longitude});
   });
 };
+const fetchISSFlyOverTimes = function(coords, callback) {
+  const url3 = `https://iss-flyover.herokuapp.com/json/?lat=YOUR_LAT_INPUT_HERE&lon=YOUR_LON_INPUT_HERE.`;
 
-module.exports = fetchMyIP;
-//  ,
-//   fetchCoordsByIP
-//};
+  needle.get(url3, (error, response, body) =>{
+    if (error) {
+      callback(error, null);
+      return;
+    }
+
+    if (response.statusCode !== 200) {
+      callback(Error(`Status Code ${response.statusCode} when fetching ISS pass times: ${body}`), null);
+      return;
+    }
+
+    const passes = body.response;
+    callback(null, passes);
+  });
+
+};
+
+
+
+
+
+
+
+module.exports = { 
+    fetchMyIP,
+    fetchCoordsByIP,
+    fetchISSFlyOverTimes
+};
 
 
 
