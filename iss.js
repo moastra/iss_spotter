@@ -9,7 +9,7 @@
 
 const needle = require('needle');
 
-const fetchMyIP = function(callback) { 
+const fetchMyIP = function(callback) {
   const url1 = `https://api.ipify.org?format=json`;
 
   needle.get(url1, (error, response, body) => {
@@ -31,12 +31,12 @@ const fetchCoordsByIP = function(ip, callback) {
   const url2 = `http://ipwho.is/${ip}`;
 
   needle.get(url2, (error, response, body) =>{
-    if(error) {
+    if (error) {
       callback(error, null);
       return;
     }
 
-    if (response.statusCode !== 200) {
+    if (!body.success) {
       const message = `Success status was ${body.success}. Server message says: ${body.message} when fetching for IP ${body.ip}`;
       callback(Error(message), null);
       return;
@@ -47,8 +47,10 @@ const fetchCoordsByIP = function(ip, callback) {
     callback(null, {latitude, longitude});
   });
 };
+
+
 const fetchISSFlyOverTimes = function(coords, callback) {
-  const url3 = `https://iss-flyover.herokuapp.com/json/?lat=YOUR_LAT_INPUT_HERE&lon=YOUR_LON_INPUT_HERE.`;
+  const url3 = `https://iss-flyover.herokuapp.com/json/?lat=${coords.latitude}&lon=${coords.longitude}`;
 
   needle.get(url3, (error, response, body) =>{
     if (error) {
@@ -67,20 +69,28 @@ const fetchISSFlyOverTimes = function(coords, callback) {
 
 };
 
+const nextISSTimesForMyLocation = function(callback) {
+  fetchMyIP((error, ip) => {
+    if (error) {
+      return callback(error, null);
+    }
 
+    fetchCoordsByIP(ip, (error,loc) => {
+      if (error) {
+        return callback(error, null);
+      }
 
+      fetchISSFlyOverTimes(loc, (error, nextPasses) => {
+        if (error) {
+          return callback(error, null);
+        }
 
+        callback(null, nextPasses);
+      });
+    });
+  });
 
-
-
-module.exports = { 
-    fetchMyIP,
-    fetchCoordsByIP,
-    fetchISSFlyOverTimes
 };
 
 
-
-
-
-// https://api.ipify.org?format=json
+module.exports = nextISSTimesForMyLocation;
