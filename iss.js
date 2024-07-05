@@ -10,9 +10,9 @@
 const needle = require('needle');
 
 const fetchMyIP = function(callback) { 
-  const url = `https://api.ipify.org?format=json`;
+  const url1 = `https://api.ipify.org?format=json`;
 
-  needle.get(url, (error, response, body) => {
+  needle.get(url1, (error, response, body) => {
     if (error) {
       callback(`Request failed: ${error.message}`, null);
       return;
@@ -27,7 +27,33 @@ const fetchMyIP = function(callback) {
   });
 };
 
+const fetchCoordsByIP = function(ip, callback) {
+  const url2 = `http://ipwho.is/${ip}`;
+
+  needle.get(url2, (error, response, body) =>{
+    if(error) {
+      callback(error, null);
+      return;
+    }
+
+    console.log('Response body: ', body);
+
+    if (!body.succes) {
+      const message = `Success status was ${body.success}. Server message says: ${body.message} when fetching for IP ${body.ip}`;
+      callback(Error(message), null);
+      return;
+    }
+
+    const long = body.longitude;
+    const lat = body.latitude;
+    callback(null, {lat, long});
+  });
+};
+
 module.exports = fetchMyIP;
+//  ,
+//   fetchCoordsByIP
+//};
 
 
 
